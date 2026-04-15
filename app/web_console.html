@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OrangePi AI &#x63A7;&#x5236;&#x53F0;</title>
+<style>
+:root{--bg:#0a1320;--panel:#101b2c;--line:#2b3a52;--text:#e5eefb;--muted:#93a4bd;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--blue:#2563eb}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.45 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(180deg,#08111d,#04070d);color:var(--text)}
+.wrap{max-width:1560px;margin:0 auto;padding:10px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.meta{color:var(--muted);font-size:12px;margin-top:2px}
+h2{margin:0 0 10px;font-size:19px;line-height:1.25}
+button,input,textarea{font:inherit}
+button{border:none;border-radius:9px;padding:9px 14px;color:#fff;background:var(--blue);cursor:pointer;font-weight:700;line-height:1.25}
+button.secondary{background:#334155}
+button.warn{background:#d97706}
+button.danger{background:#dc2626}
+.ghost{background:#182638;color:#cfe0f7}
+.ghost.active{background:#2563eb;color:#fff}
+input[type=text],input[type=number],textarea{width:100%;padding:9px 10px;border-radius:9px;border:1px solid var(--line);background:#08111d;color:var(--text);min-height:40px}
+textarea{min-height:120px;resize:vertical}
+input[type=checkbox]{width:18px;height:18px}
+.stats{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.stat,.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.stat{padding:9px 10px}
+.label{color:var(--muted);font-size:12px;margin-bottom:4px}
+.value{font-size:21px;font-weight:800;line-height:1.15}
+.ok{color:var(--ok)}
+.warnc{color:var(--warn)}
+.bad{color:var(--bad)}
+.panel{padding:12px}
+.tabbar,.subtabbar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.overview-grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:10px}
+.preview{position:relative;background:#020617;border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:220px;display:flex;align-items:center;justify-content:center}
+.preview img{width:100%;height:auto;display:none}
+.preview-note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;text-align:center;color:var(--muted);font-size:13px;line-height:1.5}
+.hint,.mini{font-size:12px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:132px 1fr;gap:7px;row-gap:7px;font-size:13px}
+.k{color:var(--muted)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.row>*{flex:1 1 auto}
+.arrows{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.empty{visibility:hidden}
+.preset{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;background:#152235}
+.preset:last-child{margin-bottom:0}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;background:#020617;border:1px solid var(--line);border-radius:10px;padding:10px;min-height:180px;max-height:460px;overflow:auto;font-size:12px;line-height:1.45;color:#dbeafe}
+.result{min-height:20px;color:#bfdbfe;font-size:13px}
+.trendgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.trend{background:#08111d;border:1px solid var(--line);border-radius:10px;padding:8px}
+.trend canvas{width:100%;height:96px;display:block}
+.servicebox,.stack{display:grid;gap:10px}
+.edid-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:#08111d;display:grid;gap:8px}
+.statusline{font-size:13px;color:var(--muted)}
+.config-layout{display:grid;grid-template-columns:180px minmax(0,1fr);gap:10px}
+.config-groups{display:grid;gap:8px}
+.config-guide{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0c1624;margin-bottom:10px;font-size:13px;line-height:1.6;color:#dbeafe}
+.config-guide .mini{display:block;margin-top:4px}
+.config-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.field[data-tier="advanced"]{border-style:dashed}
+.target-priority-editor{display:grid;gap:6px;width:100%;margin-top:6px;min-width:0}
+.target-priority-toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.target-priority-toolbar button{flex:0 0 auto}
+.target-priority-list{display:grid;gap:6px;min-width:0}
+.target-priority-item{display:grid;grid-template-columns:84px minmax(180px,1fr) minmax(150px,max-content);gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#08111d;min-width:0}
+.target-priority-rank{font-size:12px;color:var(--muted);font-weight:700;line-height:1.35;word-break:break-word}
+.target-priority-name{font-size:13px;font-weight:700;line-height:1.35;min-width:0;word-break:break-word}
+.target-priority-name .mini{display:block;margin-top:2px}
+.target-priority-tools{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;min-width:150px}
+.target-priority-tools button{flex:0 0 auto}
+.field.field-wide{grid-template-columns:1fr}
+.field.field-wide .field-input{justify-content:stretch}
+.field.field-wide .field-input>input,
+.field.field-wide .field-input>.target-priority-editor,
+.field.field-wide .field-input>.row,
+.field.field-wide .field-input>.mini{width:100%}
+.config-section{display:none}
+.config-section.active{display:block}
+.field{display:grid;grid-template-columns:minmax(0,1fr) 132px;gap:8px;align-items:start;padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:#0c1624}
+.field-title{font-size:14px;font-weight:700;margin-bottom:2px;line-height:1.3}
+.field-desc{font-size:12px;color:var(--muted);line-height:1.5}
+.field-input{display:flex;align-items:center;justify-content:flex-end;min-height:100%}
+.control-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:10px;align-items:start}
+.control-side{display:grid;gap:10px}
+.control-main{min-width:0}
+.logs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.model-grid{display:grid;grid-template-columns:360px minmax(0,1fr);gap:10px;align-items:start}
+.model-list{display:grid;gap:8px;max-height:360px;overflow:auto}
+.model-item{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0c1624;cursor:pointer}
+.model-item.active{border-color:#2563eb;box-shadow:0 0 0 1px #2563eb inset}
+.model-item .title{font-size:14px;font-weight:700;margin-bottom:4px}
+.model-item .sub{font-size:12px;color:var(--muted);line-height:1.45}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:999px;font-size:11px;line-height:1.2;font-weight:700;border:1px solid transparent}
+.badge.current{background:rgba(37,99,235,.16);border-color:rgba(96,165,250,.45);color:#bfdbfe}
+.badge.uploaded{background:rgba(34,197,94,.14);border-color:rgba(74,222,128,.35);color:#bbf7d0}
+.badge.discovered{background:rgba(148,163,184,.12);border-color:rgba(148,163,184,.28);color:#cbd5e1}
+.badge.deletable{background:rgba(245,158,11,.16);border-color:rgba(251,191,36,.35);color:#fde68a}
+.badge.readonly{background:rgba(239,68,68,.14);border-color:rgba(248,113,113,.30);color:#fecaca}
+.hotkey-list{display:grid;gap:8px}
+.hotkey-row{display:grid;grid-template-columns:160px minmax(0,1fr) 120px;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px;background:#08111d}
+.hotkey-label{font-size:13px;font-weight:700;line-height:1.4}
+.hotkey-label .mini{display:block;margin-top:2px}
+.hotkey-tools{display:flex;gap:6px;justify-content:flex-end}
+@media(max-width:1280px){.stats{grid-template-columns:repeat(4,minmax(0,1fr))}.overview-grid,.config-layout,.control-grid,.model-grid{grid-template-columns:1fr}}
+@media(max-width:980px){.overview-grid,.duo,.trendgrid,.logs-grid,.control-grid,.model-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.target-priority-item{grid-template-columns:1fr}.target-priority-tools{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><div style="font-size:26px;font-weight:800;line-height:1.15">OrangePi AI &#x63A7;&#x5236;&#x53F0;</div><div class="meta" id="meta">&#x52A0;&#x8F7D;&#x4E2D;...</div></div>
+    <div class="row" style="max-width:520px"><button id="applyBtn">&#x4FDD;&#x5B58;&#x5E76;&#x5E94;&#x7528;&#x53C2;&#x6570;</button><button id="resetConfigBtn" class="secondary">&#x6062;&#x590D;&#x9ED8;&#x8BA4;&#x53C2;&#x6570;</button></div>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="tabbar">
+    <button class="ghost active" data-main-tab="overview">&#x603B;&#x89C8;</button>
+    <button class="ghost" data-main-tab="config">&#x53C2;&#x6570;</button>
+    <button class="ghost" data-main-tab="models">&#x6A21;&#x578B;</button>
+    <button class="ghost" data-main-tab="control">&#x63A7;&#x5236;</button>
+    <button class="ghost" data-main-tab="logs">&#x65E5;&#x5FD7;</button>
+  </div>
+
+  <div class="tab-panel active" data-panel="overview">
+    <div class="overview-grid">
+      <div class="panel">
+        <h2 style="margin-top:0">&#x5B9E;&#x65F6;&#x9884;&#x89C8;</h2>
+        <div class="preview"><img id="previewImage" alt="&#x9884;&#x89C8;&#x56FE;"><div class="preview-note" id="previewNote">&#x7B49;&#x5F85;&#x9884;&#x89C8;&#x56FE;&#x751F;&#x6210;...</div></div>
+        <div class="meta" id="previewMeta" style="margin:6px 0 0">&#x9884;&#x89C8;&#x72B6;&#x6001;&#x7B49;&#x5F85;&#x4E2D;...</div>
+        <div class="trendgrid">
+          <div class="trend"><div class="mini">&#x63A8;&#x7406; FPS</div><canvas id="trendFps" width="480" height="120"></canvas></div>
+          <div class="trend"><div class="mini">&#x603B;&#x5EF6;&#x8FDF; ms</div><canvas id="trendLatency" width="480" height="120"></canvas></div>
+          <div class="trend"><div class="mini">&#x63A8;&#x7406;&#x8017;&#x65F6; ms</div><canvas id="trendInfer" width="480" height="120"></canvas></div>
+          <div class="trend"><div class="mini">&#x9F20;&#x6807;&#x79FB;&#x52A8;&#x91CF;</div><canvas id="trendMove" width="480" height="120"></canvas></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel"><h2 style="margin-top:0">&#x670D;&#x52A1;&#x72B6;&#x6001;</h2><div class="statusline" id="serviceStatus">&#x670D;&#x52A1;&#x72B6;&#x6001;&#x7B49;&#x5F85;&#x4E2D;...</div></div>
+        <div class="panel"><h2 style="margin-top:0">AI &#x72B6;&#x6001;</h2><div class="kv" id="aiKv"></div></div>
+        <div class="panel"><h2 style="margin-top:0">&#x900F;&#x4F20;&#x72B6;&#x6001;</h2><div class="kv" id="ptKv"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="config">
+    <div class="panel">
+      <h2 style="margin-top:0">&#x8FD0;&#x884C;&#x53C2;&#x6570;</h2>
+      <div class="hint" style="margin-bottom:10px">&#x73B0;&#x5728;&#x53C2;&#x6570;&#x5DF2;&#x6309;&#x5355;&#x94FE;&#x8DEF;&#x6574;&#x7406;&#x3002;&#x5EFA;&#x8BAE;&#x5148;&#x8C03;&#x76EE;&#x6807;&#x7B5B;&#x9009;&#x4E0E;&#x622A;&#x56FE;&#x8303;&#x56F4;&#xFF0C;&#x518D;&#x8C03; X/Y &#x8F74;&#x500D;&#x7387;&#x548C;&#x5355;&#x5E27;&#x6B65;&#x957F;&#x4E0A;&#x9650;&#xFF0C;&#x6700;&#x540E;&#x518D;&#x8C03;&#x8D1D;&#x585E;&#x5C14;&#x8F68;&#x8FF9;&#x5F62;&#x6001;&#x3002;</div>
+      <div class="config-guide" id="configGuide"></div>
+      <div class="config-tools"><button id="toggleAdvancedBtn" type="button" class="ghost">&#x663E;&#x793A;&#x9AD8;&#x7EA7;&#x53C2;&#x6570;</button><span class="mini" id="advancedModeHint">&#x9ED8;&#x8BA4;&#x53EA;&#x663E;&#x793A;&#x5E38;&#x7528;&#x53C2;&#x6570;&#x3002;</span></div>
+      <div class="config-layout">
+        <div class="subtabbar" id="groupTabs" style="flex-direction:column;align-items:stretch"></div>
+        <div class="config-groups" id="configForm"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="models">
+    <div class="model-grid">
+      <div class="stack">
+        <div class="panel">
+          <h2 style="margin-top:0">&#x6A21;&#x578B;&#x4E0A;&#x4F20;</h2>
+          <div class="row"><input id="modelUploadFile" type="file" accept=".rknn"></div>
+          <div class="row" style="margin-top:6px"><input id="modelUploadLabel" type="text" placeholder="&#x7ED9;&#x6A21;&#x578B;&#x8D77;&#x4E00;&#x4E2A;&#x597D;&#x8BA4;&#x7684;&#x540D;&#x5B57;"></div>
+          <div class="row" style="margin-top:6px"><button id="modelUploadBtn">&#x4E0A;&#x4F20;&#x5E76;&#x6821;&#x9A8C;</button></div>
+          <div class="hint" style="margin-top:8px">&#x4E0A;&#x4F20;&#x540E;&#x4F1A;&#x81EA;&#x52A8;&#x4FDD;&#x5B58;&#x5230; <code>models/</code> &#x76EE;&#x5F55;&#xFF0C;&#x505A;&#x57FA;&#x7840;&#x6821;&#x9A8C;&#xFF0C;&#x5E76;&#x5C1D;&#x8BD5;&#x7528; RKNN &#x8FD0;&#x884C;&#x65F6;&#x68C0;&#x6D4B;&#x662F;&#x5426;&#x53EF;&#x52A0;&#x8F7D;&#x3002;</div>
+          <div class="result" id="modelUploadResult" style="margin-top:8px"></div>
+        </div>
+        <div class="panel">
+          <h2 style="margin-top:0">&#x6A21;&#x578B;&#x5217;&#x8868;</h2>
+          <div class="hint" style="margin-bottom:8px">&#x8FD9;&#x91CC;&#x53EA;&#x5217;&#x51FA;&#x5DF2;&#x5165;&#x5E93;&#x7684;&#x6A21;&#x578B;&#x3002;&#x4E0A;&#x4F20;&#x6216;&#x4FDD;&#x5B58;&#x8D44;&#x6599;&#x540E;&#x4F1A;&#x5199;&#x5165;&#x6A21;&#x578B;&#x6E05;&#x5355;&#xFF0C;&#x4E0D;&#x518D;&#x81EA;&#x52A8;&#x626B;&#x63CF;&#x78C1;&#x76D8;&#x3002;</div>
+          <div id="modelList" class="model-list"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top:0">&#x6A21;&#x578B;&#x8BE6;&#x60C5;</h2>
+        <div class="duo">
+          <div class="stack">
+            <div class="kv" id="modelMetaKv"></div>
+          </div>
+          <div class="stack">
+            <div class="row"><input id="modelEditLabel" type="text" placeholder="&#x6A21;&#x578B;&#x663E;&#x793A;&#x540D;&#x79F0;"></div>
+            <div class="row" style="gap:10px;align-items:flex-start;flex-wrap:wrap">
+              <div style="flex:0 0 140px;min-width:140px">
+                <div class="mini" style="margin-bottom:4px">&#x9ED8;&#x8BA4;&#x7784;&#x51C6;&#x7C7B;&#x522B;</div>
+                <input id="modelEditAimClass" type="number" min="0" step="1" placeholder="0">
+              </div>
+              <div style="flex:1 1 320px;min-width:260px">
+                <div class="mini" style="margin-bottom:4px">&#x9ED8;&#x8BA4;&#x89E6;&#x53D1;&#x6309;&#x952E;</div>
+                <input id="modelEditAimKeys" type="text" placeholder="KEY_LEFTSHIFT,KEY_RIGHTSHIFT">
+                <div class="row" style="margin-top:6px">
+                  <button id="modelEditAimKeysLearnBtn" type="button" class="secondary">&#x611F;&#x5E94;</button>
+                  <button id="modelEditAimKeysClearBtn" type="button" class="ghost">&#x6E05;&#x7A7A;</button>
+                </div>
+                <div id="modelEditAimKeysHint" class="mini" style="margin-top:6px">&#x8FD9;&#x4E2A;&#x6A21;&#x578B;&#x88AB;&#x9009;&#x4E2D;&#x65F6;&#xFF0C;&#x4F1A;&#x628A;&#x8FD9;&#x91CC;&#x7684;&#x7C7B;&#x522B;&#x548C;&#x89E6;&#x53D1;&#x952E;&#x540C;&#x6B65;&#x5230;&#x8FD0;&#x884C;&#x914D;&#x7F6E;&#x3002;</div>
+              </div>
+            </div>
+            <div>
+              <div class="mini" style="margin-bottom:4px">&#x7C7B;&#x522B;&#x540D;&#x79F0;</div>
+              <textarea id="modelEditClasses" placeholder="&#x6BCF;&#x884C;&#x4E00;&#x4E2A;&#x7C7B;&#x522B;&#x540D;&#xFF0C;&#x4F8B;&#x5982; person, car, head"></textarea>
+            </div>
+            <div>
+              <div class="mini" style="margin-bottom:4px">&#x76EE;&#x6807;&#x5207;&#x6362;&#x5FEB;&#x6377;&#x952E;</div>
+              <div class="hint" style="margin-bottom:6px">&#x5728;&#x8FD9;&#x91CC;&#x7ED9;&#x6BCF;&#x4E2A;&#x7C7B;&#x522B;&#x914D;&#x4E00;&#x4E2A;&#x6309;&#x952E;&#x3002;AI &#x8FD0;&#x884C;&#x65F6;&#xFF0C;&#x6309;&#x4E0B;&#x5BF9;&#x5E94;&#x6309;&#x952E;&#x5C31;&#x4F1A;&#x7ACB;&#x5373;&#x5207;&#x6362;&#x7784;&#x51C6;&#x7C7B;&#x522B;&#x3002;</div>
+              <div id="modelTargetHotkeys" class="hotkey-list"></div>
+            </div>
+            <div>
+              <div class="mini" style="margin-bottom:4px">&#x5907;&#x6CE8;</div>
+              <textarea id="modelEditNotes" placeholder="&#x8BB0;&#x5F55;&#x8FD9;&#x4E2A;&#x6A21;&#x578B;&#x7684;&#x7528;&#x9014;&#x3001;&#x8BAD;&#x7EC3;&#x6765;&#x6E90;&#x3001;&#x9002;&#x5408;&#x7684;&#x573A;&#x666F;&#x7B49;"></textarea>
+            </div>
+            <div class="row"><button id="modelSaveBtn">&#x4FDD;&#x5B58;&#x8D44;&#x6599;</button><button class="warn" id="modelSelectBtn">&#x5207;&#x6362;&#x5230; AI</button><button class="danger" id="modelDeleteBtn">&#x5220;&#x9664;&#x4E0A;&#x4F20;&#x6A21;&#x578B;</button></div>
+            <div class="result" id="modelActionResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="control">
+    <div class="control-grid">
+      <div class="control-side">
+        <div class="panel">
+          <h2 style="margin-top:0">&#x670D;&#x52A1;&#x63A7;&#x5236;</h2>
+          <div class="servicebox">
+            <div class="mini">AI &#x670D;&#x52A1;</div>
+            <div class="row"><button data-service="ai:start">&#x542F;&#x52A8;</button><button class="secondary" data-service="ai:stop">&#x505C;&#x6B62;</button><button class="warn" data-service="ai:restart">&#x91CD;&#x542F;</button></div>
+            <div class="mini">&#x9884;&#x89C8;&#x7A97;&#x53E3;</div>
+            <div class="row"><button id="toggleShowBtn" class="secondary">&#x5173;&#x95ED;&#x9884;&#x89C8;&#x7A97;&#x53E3;</button></div>
+            <div class="hint" id="showStatusHint">&#x9884;&#x89C8;&#x7A97;&#x53E3;&#x72B6;&#x6001;&#x8BFB;&#x53D6;&#x4E2D;...</div>
+            <div class="mini">&#x900F;&#x4F20;&#x670D;&#x52A1;</div>
+            <div class="row"><button data-service="passthrough:start">&#x542F;&#x52A8;</button><button class="secondary" data-service="passthrough:stop">&#x505C;&#x6B62;</button><button class="warn" data-service="passthrough:restart">&#x91CD;&#x542F;</button></div>
+          </div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2 style="margin-top:0">&#x53C2;&#x6570;&#x9884;&#x8BBE;</h2>
+          <div class="row"><input id="presetName" type="text" placeholder="&#x8F93;&#x5165;&#x81EA;&#x5B9A;&#x4E49;&#x9884;&#x8BBE;&#x540D;"><button id="savePresetBtn">&#x4FDD;&#x5B58;&#x5F53;&#x524D;&#x53C2;&#x6570;</button></div>
+          <div class="hint" style="margin:8px 0">&#x5185;&#x7F6E;&#x9884;&#x8BBE;&#x4E0D;&#x80FD;&#x5220;&#x9664;&#x3002;&#x81EA;&#x5B9A;&#x4E49;&#x9884;&#x8BBE;&#x4FDD;&#x5B58;&#x5728; `.ai_presets.json`&#x3002;</div>
+          <div id="presetList"></div>
+        </div>
+        <div class="panel">
+          <h2 style="margin-top:0">HDMI RX EDID</h2>
+          <div class="edid-card">
+            <div><strong>EDID 配置</strong></div>
+            <div class="mini">默认给输出源一个更接近标准显示器的 EDID，主选项是 1080p120，同时保留 2k60 作为第二个可选模式。</div>
+            <div class="mini">身份信息会持久化保存，不会因为重启自动变化。点击随机按钮后会立即重发当前 EDID。</div>
+            <div id="edidIdentity" class="mini" style="line-height:1.6"></div>
+            <div class="row"><button id="edidRandomIdentityBtn" class="secondary">随机品牌/厂商/名称</button></div>
+            <div id="edidProfileList" class="stack"></div>
+            <div class="hint">应用后请让主机重新识别显示器，例如重新插拔 HDMI 或切换输出。</div>
+            <div class="result" id="edidResult"></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel control-main">
+        <h2 style="margin-top:0">&#x76F4;&#x63A5;&#x63A7;&#x5236;</h2>
+        <div class="mini" style="margin-bottom:4px">&#x952E;&#x76D8;</div>
+        <div class="row"><input id="controlKey" type="text" value="KEY_LEFTSHIFT"><button data-key="key_tap">&#x5355;&#x51FB;</button><button class="secondary" data-key="key_down">&#x6309;&#x4E0B;</button><button class="secondary" data-key="key_up">&#x5F39;&#x8D77;</button></div>
+        <div class="mini" style="margin:8px 0 4px">&#x9F20;&#x6807;&#x79FB;&#x52A8;</div>
+        <div class="row"><input id="moveDx" type="number" value="10"><input id="moveDy" type="number" value="10"><button id="moveBtn">&#x79FB;&#x52A8;</button></div>
+        <div class="arrows" style="margin-top:6px"><div class="empty">.</div><button data-arrow="up">&#x4E0A;</button><div class="empty">.</div><button data-arrow="left">&#x5DE6;</button><button class="secondary" data-arrow="center">&#x505C;</button><button data-arrow="right">&#x53F3;</button><div class="empty">.</div><button data-arrow="down">&#x4E0B;</button><div class="empty">.</div></div>
+        <div class="mini" style="margin:8px 0 4px">&#x6309;&#x952E; / &#x6EDA;&#x8F6E;</div>
+        <div class="row"><button data-mouse="mouse_click:left">&#x5DE6;&#x952E;&#x5355;&#x51FB;</button><button class="secondary" data-mouse="mouse_click:right">&#x53F3;&#x952E;&#x5355;&#x51FB;</button><button class="secondary" data-mouse="mouse_click:middle">&#x4E2D;&#x952E;&#x5355;&#x51FB;</button></div>
+        <div class="row" style="margin-top:6px"><button class="secondary" data-mouse="mouse_down:left">&#x5DE6;&#x952E;&#x6309;&#x4E0B;</button><button class="secondary" data-mouse="mouse_up:left">&#x5DE6;&#x952E;&#x5F39;&#x8D77;</button><input id="scrollWheel" type="number" value="1"><button id="scrollBtn">&#x6EDA;&#x8F6E;</button></div>
+        <div class="result" id="controlResult" style="margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="logs">
+    <div class="logs-grid">
+      <div class="panel"><h2 style="margin-top:0">AI &#x65E5;&#x5FD7;</h2><pre id="aiLog"></pre></div>
+      <div class="panel"><h2 style="margin-top:0">&#x900F;&#x4F20;&#x65E5;&#x5FD7;</h2><pre id="ptLog"></pre></div>
+    </div>
+  </div>
+</div>
+<script>
+let schema=[],currentConfig={},previewTick=0,currentGroup='',modelData={selected_model_id:'',models:[]},currentModelId='',lastModelRenderSignature='',currentAiShowEnabled=false,showAdvanced=false;const hist={fps:[],latency:[],infer:[],move:[]};const HISTORY_MAX=120;
+const ADVANCED_FIELDS=new Set(['aim_class','process_width','process_height','control_max_step','bezier_segment_dist_1','bezier_segment_dist_2','bezier_segment_dist_3','bezier_curve_min_distance','bezier_curve_scale','bezier_jitter_min_distance','bezier_jitter_scale','bezier_jitter_damping','chris_kp','chris_ki','chris_kd','chris_predict_weight_x','chris_predict_weight_y','chris_init_scale','chris_ramp_time','chris_output_max','chris_i_max','chris_predict_alpha_vel','chris_predict_alpha_acc','chris_predict_max_vel','chris_predict_max_acc','loop_interval_ms','print_every','log_every_frame']);
+const CONFIG_GROUP_GUIDES={
+'1. 检测与目标':'先确认目标是否能稳定识别、触发键是否正确，再去调后面的移动速度。',
+'2. 画面采集':'这里只影响看图范围和预处理尺寸。除非识别区域明显不对，否则一般不用频繁改。',
+'3. 极简移动':'这里只保留原始偏差乘 X/Y 轴倍率，再做单帧步长限幅。',
+'4. LUMA 控制器':'可以打开/关闭 LUMA PID 与预测器，用于对比原始偏差控制和 LUMA 控制效果。',
+'5. 节奏与调试':'控制循环节奏、日志和精准调试。'
+};
+const safe=(v,f='\u65E0')=>v===undefined||v===null||v===''?f:v;const num=(v,d=1)=>isNaN(Number(v))?'\u65E0':Number(v).toFixed(d);const stat=(l,v,c='')=>`<div class="stat"><div class="label">${l}</div><div class="value ${c}">${v}</div></div>`;
+const previewImage=document.getElementById('previewImage');const previewNote=document.getElementById('previewNote');
+function setKv(id,entries){document.getElementById(id).innerHTML=entries.map(([k,v])=>`<div class="k">${k}</div><div>${safe(v)}</div>`).join('')}
+function pushHist(name,value){const n=Number(value);if(!Number.isFinite(n))return;hist[name].push(n);if(hist[name].length>HISTORY_MAX)hist[name].shift()}
+function drawTrend(id,data,color){const canvas=document.getElementById(id),ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#06101b';ctx.fillRect(0,0,w,h);ctx.strokeStyle='#22314a';ctx.lineWidth=1;for(let i=1;i<4;i++){const y=i*h/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}if(!data.length)return;let min=Math.min(...data),max=Math.max(...data);if(min===max){min-=1;max+=1}ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();data.forEach((v,i)=>{const x=data.length===1?0:i*(w-1)/(data.length-1);const y=h-((v-min)/(max-min))*(h-8)-4;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();ctx.fillStyle='#93a4bd';ctx.font='12px Segoe UI';ctx.fillText(`${data[data.length-1].toFixed(1)}  \u6700\u5C0F:${min.toFixed(1)} \u6700\u5927:${max.toFixed(1)}`,8,14)}
+function drawAllTrends(){drawTrend('trendFps',hist.fps,'#22c55e');drawTrend('trendLatency',hist.latency,'#f59e0b');drawTrend('trendInfer',hist.infer,'#38bdf8');drawTrend('trendMove',hist.move,'#ef4444')}
+function setPreviewMessage(msg){previewNote.textContent=msg;previewNote.style.display='flex';previewImage.style.display='none'}
+function showPreview(){previewNote.style.display='none';previewImage.style.display='block'}
+function updateShowControls(showEnabled){currentAiShowEnabled=Boolean(showEnabled);const btn=document.getElementById('toggleShowBtn');const hint=document.getElementById('showStatusHint');if(btn)btn.textContent=currentAiShowEnabled?'\u5173\u95ed\u9884\u89c8\u7a97\u53e3':'\u6253\u5f00\u9884\u89c8\u7a97\u53e3';if(hint)hint.textContent=`\u9884\u89c8\u7a97\u53e3: ${currentAiShowEnabled?'\u5df2\u5f00\u542f':'\u5df2\u5173\u95ed'}\uff0c\u5207\u6362\u540e\u4f1a\u81ea\u52a8\u91cd\u542f AI \u670d\u52a1`}
+async function getj(u){const r=await fetch(u,{cache:'no-store'});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||u);return d}
+async function postj(u,p){const r=await fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p||{})});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||u);return d}
+function switchMainTab(name){document.querySelectorAll('[data-main-tab]').forEach(el=>el.classList.toggle('active',el.dataset.mainTab===name));document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('active',el.dataset.panel===name))}
+function refreshConfigVisibility(){document.querySelectorAll('.field').forEach(el=>{const advanced=el.dataset.tier==='advanced';const advancedVisible=!advanced||showAdvanced;el.style.display=advancedVisible?'grid':'none'});document.querySelectorAll('.config-section').forEach(section=>{const visibleFields=[...section.querySelectorAll('.field')].some(el=>el.style.display!=='none');section.style.display=section.classList.contains('active')&&visibleFields?'block':'none'});document.querySelectorAll('[data-group-tab]').forEach(tab=>{const name=tab.dataset.groupTab;const section=document.querySelector(`.config-section[data-group="${name}"]`);const hasVisibleFields=Boolean(section)&&[...section.querySelectorAll('.field')].some(el=>el.style.display!=='none');tab.style.display=hasVisibleFields?'':'none';if(!hasVisibleFields&&currentGroup===name){const fallback=[...document.querySelectorAll('[data-group-tab]')].find(el=>el.style.display!=='none');if(fallback)currentGroup=fallback.dataset.groupTab}})}
+function updateAdvancedVisibility(){refreshConfigVisibility();const btn=document.getElementById('toggleAdvancedBtn');const hint=document.getElementById('advancedModeHint');if(btn)btn.textContent=showAdvanced?'隐藏高级参数':'显示高级参数';if(hint){const hidden=[...document.querySelectorAll('.field[data-tier="advanced"]')].length;hint.textContent=showAdvanced?`当前已展开高级参数，共 ${hidden} 项。`:`当前只显示常用参数，已折叠 ${hidden} 项高级参数。`}}
+function switchGroupTab(name){currentGroup=name;document.querySelectorAll('[data-group-tab]').forEach(el=>el.classList.toggle('active',el.dataset.groupTab===name));document.querySelectorAll('.config-section').forEach(el=>el.classList.toggle('active',el.dataset.group===name));const guide=document.getElementById('configGuide');if(guide){guide.innerHTML=`<strong>${name}</strong><span class="mini">${CONFIG_GROUP_GUIDES[name]||'当前分区没有额外说明。'}</span>`}updateAdvancedVisibility()}
+let lastPassthroughKeys=[];let keyLearnActive=false;let keyLearnBaseline=[];let keyLearnTimer=null;let keyLearnInputId='';let keyLearnHintId='';
+function normalizeAimKeysText(text){const seen=new Set();const out=[];for(const part of String(text||'').split(/[\s,\uFF0C;\uFF1B]+/)){const key=part.trim().toUpperCase();if(!key||seen.has(key))continue;seen.add(key);out.push(key)}return out.join(',')}
+function readPassthroughKeys(pt){if(Array.isArray(pt?.keys))return pt.keys;if(Array.isArray(pt?.pressed_keys))return pt.pressed_keys;return []}
+function setAimKeyCaptureHint(message,hintId=keyLearnHintId){const el=hintId?document.getElementById(hintId):null;if(el)el.textContent=message}
+function stopAimKeyLearn(message){keyLearnActive=false;keyLearnInputId='';if(keyLearnTimer){clearInterval(keyLearnTimer);keyLearnTimer=null}setAimKeyCaptureHint(message)}
+function appendAimKeyValue(input,keyName){const items=normalizeAimKeysText(`${input.value||''},${keyName}`).split(',').filter(Boolean);input.value=items.join(',');input.dataset.dirty='1';return input.value}
+async function pollAimKeyLearn(){if(!keyLearnActive||!keyLearnInputId)return;const data=await getj('/api/state');const pt=data.passthrough||{};lastPassthroughKeys=readPassthroughKeys(pt);const input=document.getElementById(keyLearnInputId);if(!input){stopAimKeyLearn('\u611f\u5e94\u8f93\u5165\u6846\u4e0d\u5b58\u5728');return}const fresh=lastPassthroughKeys.filter(k=>!keyLearnBaseline.includes(k));if(!fresh.length)return;appendAimKeyValue(input,fresh[0]);stopAimKeyLearn(`\u5df2\u611f\u5e94: ${fresh[0]}`)}
+function startAimKeyLearn(input,hintId){keyLearnActive=true;keyLearnInputId=input.id;keyLearnHintId=hintId||'';keyLearnBaseline=[...lastPassthroughKeys];setAimKeyCaptureHint('\u611f\u5e94\u4e2d\uff1a\u8bf7\u5728\u63d2\u5230 OrangePi \u7684\u952e\u76d8\u4e0a\u6309\u4e0b\u76ee\u6807\u952e\uff0c\u5e76\u4fdd\u6301\u4e00\u4e0b\u3002',keyLearnHintId);if(keyLearnTimer)clearInterval(keyLearnTimer);keyLearnTimer=setInterval(()=>{pollAimKeyLearn().catch(()=>{})},150);pollAimKeyLearn().catch(()=>{})}
+function parseTargetHotkeys(value){let raw=value;if(typeof raw==='string'){const text=raw.trim();if(!text)return {};try{raw=JSON.parse(text)}catch(_err){raw={}}}if(!raw||typeof raw!=='object'||Array.isArray(raw))return {};const out={};for(const [k,v] of Object.entries(raw)){const classId=Number.parseInt(String(k),10);if(!Number.isFinite(classId)||classId<0)continue;const keys=normalizeAimKeysText(v);if(keys)out[String(classId)]=keys}return out}
+function getModelClassNames(model){return String(model?.class_names_text||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean)}
+function getModelClassCount(model){const names=getModelClassNames(model);const hotkeys=parseTargetHotkeys(model?.target_hotkeys||{});const hotkeyIds=Object.keys(hotkeys).map(v=>Number.parseInt(v,10)).filter(v=>Number.isFinite(v)&&v>=0);const classCount=Number.parseInt(String(model?.class_count??0),10)||0;const aimClass=Number.parseInt(String(model?.aim_class??0),10)||0;const maxId=hotkeyIds.length?Math.max(...hotkeyIds):0;return Math.max(names.length,classCount,aimClass+1,maxId+1,1)}
+function parseTargetClassPriority(value,fallbackClass=0){let rawItems=[];if(Array.isArray(value)){rawItems=value}else{const text=String(value||'').trim();if(text){try{const parsed=JSON.parse(text);if(Array.isArray(parsed))rawItems=parsed}catch(_err){}if(!rawItems.length){const normalized=text.replace(/\uFF0C/g,',').replace(/\uFF1B/g,',').replace(/;/g,',').replace(/\r/g,',').replace(/\n/g,',');rawItems=normalized.split(/[\s,]+/).filter(Boolean)}}}const out=[];for(const item of rawItems){const classId=Number.parseInt(String(item),10);if(!Number.isFinite(classId)||classId<0||out.includes(classId))continue;out.push(classId)}if(!out.length){const fallback=Number.parseInt(String(fallbackClass??0),10);out.push(Number.isFinite(fallback)&&fallback>=0?fallback:0)}return out}
+function serializeTargetClassPriority(items){return items.map(v=>String(v)).join(',')}
+function formatTargetPriorityText(value){if(Array.isArray(value)&&value.length)return value.join(', ');const text=String(value||'').trim();return text||'\u65E0'}
+function getCurrentAimPriorityInput(){return document.getElementById('aim_classes_text')}
+function getCurrentAimClassInput(){return document.getElementById('aim_class')}
+function getCurrentAimPriority(){const priorityInput=getCurrentAimPriorityInput();const aimClassInput=getCurrentAimClassInput();const fallbackClass=Number.parseInt(String(aimClassInput?.value||currentConfig?.aim_class||0),10)||0;return parseTargetClassPriority(priorityInput?.value||'',fallbackClass)}
+function setCurrentAimPriority(items){const priorityInput=getCurrentAimPriorityInput();const aimClassInput=getCurrentAimClassInput();if(!priorityInput)return;if(!Array.isArray(items)||!items.length){priorityInput.value='';priorityInput.dataset.dirty='1';refreshAimPriorityEditor();return}const normalized=parseTargetClassPriority(items,Number.parseInt(String(aimClassInput?.value||0),10)||0);priorityInput.value=serializeTargetClassPriority(normalized);priorityInput.dataset.dirty='1';if(aimClassInput&&normalized.length){aimClassInput.value=String(normalized[0]);aimClassInput.dataset.dirty='1'}refreshAimPriorityEditor()}
+function refreshAimPriorityEditor(){const input=getCurrentAimPriorityInput();if(!input)return;input.placeholder='例如 0,2,5，前面的优先级更高';const right=input.parentElement;if(!right)return;right.style.flexDirection='column';right.style.alignItems='stretch';right.style.gap='6px';let editor=document.getElementById('aimPriorityEditor');if(!editor){editor=document.createElement('div');editor.id='aimPriorityEditor';editor.className='target-priority-editor';right.appendChild(editor);input.addEventListener('input',()=>refreshAimPriorityEditor());const aimClassInput=getCurrentAimClassInput();if(aimClassInput)aimClassInput.addEventListener('input',()=>refreshAimPriorityEditor())}const selectedModel=findModel(modelData.selected_model_id)||findModel(currentModelId);if(!selectedModel){editor.innerHTML='<div class="mini">请先在模型页或当前运行状态里选择一个模型，才能可视化勾选目标优先级。</div>';return}const names=getModelClassNames(selectedModel);const count=getModelClassCount(selectedModel);const rawPriority=getCurrentAimPriority();const priority=rawPriority.filter(classId=>classId>=0&&classId<count);const droppedPriority=rawPriority.filter(classId=>classId<0||classId>=count);const selectedSet=new Set(priority);const toolbar=document.createElement('div');toolbar.className='target-priority-toolbar';const clearBtn=document.createElement('button');clearBtn.type='button';clearBtn.className='ghost';clearBtn.textContent='回退单目标';clearBtn.onclick=()=>setCurrentAimPriority([]);const modelOrderBtn=document.createElement('button');modelOrderBtn.type='button';modelOrderBtn.className='secondary';modelOrderBtn.textContent='按模型顺序全选';modelOrderBtn.onclick=()=>setCurrentAimPriority(Array.from({length:count},(_,i)=>i));toolbar.appendChild(clearBtn);toolbar.appendChild(modelOrderBtn);const list=document.createElement('div');list.className='target-priority-list';for(let classId=0;classId<count;classId+=1){const row=document.createElement('div');row.className='target-priority-item';const rank=document.createElement('div');rank.className='target-priority-rank';const rankIndex=priority.indexOf(classId);rank.textContent=rankIndex>=0?`优先级 ${rankIndex+1}`:'未选中';const label=document.createElement('div');label.className='target-priority-name';label.innerHTML=`<div>${names[classId]||`class_${classId}`}</div><div class="mini">类别 ID: ${classId}</div>`;const tools=document.createElement('div');tools.className='target-priority-tools';if(selectedSet.has(classId)){const removeBtn=document.createElement('button');removeBtn.type='button';removeBtn.className='ghost';removeBtn.textContent='移除';removeBtn.onclick=()=>setCurrentAimPriority(priority.filter(v=>v!==classId));const upBtn=document.createElement('button');upBtn.type='button';upBtn.className='secondary';upBtn.textContent='上移';upBtn.disabled=rankIndex<=0;upBtn.onclick=()=>{const next=[...priority];const swap=next[rankIndex-1];next[rankIndex-1]=next[rankIndex];next[rankIndex]=swap;setCurrentAimPriority(next)};const downBtn=document.createElement('button');downBtn.type='button';downBtn.className='secondary';downBtn.textContent='下移';downBtn.disabled=rankIndex<0||rankIndex>=priority.length-1;downBtn.onclick=()=>{const next=[...priority];const swap=next[rankIndex+1];next[rankIndex+1]=next[rankIndex];next[rankIndex]=swap;setCurrentAimPriority(next)};tools.appendChild(upBtn);tools.appendChild(downBtn);tools.appendChild(removeBtn)}else{const addBtn=document.createElement('button');addBtn.type='button';addBtn.className='secondary';addBtn.textContent='加入';addBtn.onclick=()=>setCurrentAimPriority([...priority,classId]);tools.appendChild(addBtn)}row.appendChild(rank);row.appendChild(label);row.appendChild(tools);list.appendChild(row)}editor.innerHTML='';editor.appendChild(toolbar);if(droppedPriority.length){const notice=document.createElement('div');notice.className='mini';notice.textContent=`当前优先级列表里有超出当前模型类别范围的 ID: ${droppedPriority.join(', ')}。下一次通过此面板编辑时会自动清理这些值。`;editor.appendChild(notice)}editor.appendChild(list)}
+function renderEdidIdentity(identity,activeProfile){const root=document.getElementById('edidIdentity');if(!root)return;const data=identity||{};root.textContent=`当前身份：品牌=${data.brand||'OrangePi'} | 名称=${data.name||'OPI-COMPAT'} | 厂商=${data.vendor||'OPI'} | 产品=${data.product_id||'0x3588'} | 序列号=${data.serial||'0x20260414'} | 当前EDID=${activeProfile||'standard-dual'}`}
+function renderEdidProfiles(profiles){const root=document.getElementById('edidProfileList');if(!root)return;root.innerHTML='';const items=Array.isArray(profiles)?profiles:[];if(!items.length){root.innerHTML='<div class="mini">当前没有可用的 EDID 预设。</div>';return}for(const profile of items){const row=document.createElement('div');row.className='preset';const title=document.createElement('div');title.style.display='flex';title.style.justifyContent='space-between';title.style.gap='8px';const strong=document.createElement('strong');strong.textContent=profile.label||profile.name||'未命名';const modes=Array.isArray(profile.modes)&&profile.modes.length?profile.modes:[profile.mode].filter(Boolean);const meta=document.createElement('span');meta.className='mini';meta.textContent=modes.join(' + ');title.appendChild(strong);title.appendChild(meta);const desc=document.createElement('div');desc.className='mini';desc.style.margin='6px 0 8px';desc.textContent=profile.description||'';const tools=document.createElement('div');tools.className='row';const btn=document.createElement('button');btn.type='button';btn.className=profile.default?'warn':'secondary';btn.textContent=`切到 ${profile.label||profile.name}`;btn.onclick=()=>applyEdidProfile(profile.name).catch(e=>alert(String(e)));tools.appendChild(btn);row.appendChild(title);row.appendChild(desc);row.appendChild(tools);root.appendChild(row)}}
+function gatherTargetHotkeysFromEditor(){const root=document.getElementById('modelTargetHotkeys');const out={};if(!root)return out;root.querySelectorAll('input[data-target-class]').forEach(input=>{const classId=String(input.dataset.targetClass||'').trim();const value=normalizeAimKeysText(input.value||'');input.value=value;if(classId&&value)out[classId]=value});return out}
+function isModelEditorDirty(){for(const id of ['modelEditLabel','modelEditAimClass','modelEditAimKeys','modelEditClasses','modelEditNotes']){const el=document.getElementById(id);if(el?.dataset?.dirty==='1')return true}const root=document.getElementById('modelTargetHotkeys');return Boolean(root&&root.querySelector('input[data-target-class][data-dirty="1"]'))}
+function clearModelEditorDirty(){for(const id of ['modelEditLabel','modelEditAimClass','modelEditAimKeys','modelEditClasses','modelEditNotes']){const el=document.getElementById(id);if(el)delete el.dataset.dirty}const root=document.getElementById('modelTargetHotkeys');if(root)root.querySelectorAll('input[data-target-class]').forEach(input=>delete input.dataset.dirty)}
+function buildTargetHotkeyEditor(model){const root=document.getElementById('modelTargetHotkeys');if(!root)return;root.innerHTML='';if(!model){root.innerHTML='<div class="mini">\u8bf7\u5148\u4ece\u5de6\u4fa7\u9009\u62e9\u4e00\u4e2a\u6a21\u578b\u3002</div>';return}const names=getModelClassNames(model);const hotkeys=parseTargetHotkeys(model.target_hotkeys||{});const count=getModelClassCount(model);for(let classId=0;classId<count;classId+=1){const row=document.createElement('div');row.className='hotkey-row';const label=document.createElement('div');label.className='hotkey-label';const className=names[classId]||`class_${classId}`;label.innerHTML=`<div>\u7c7b\u522b ${classId}</div><div class="mini">${className}</div>`;const input=document.createElement('input');input.type='text';input.placeholder='\u4f8b\u5982 KEY_F1';input.value=hotkeys[String(classId)]||'';input.dataset.targetClass=String(classId);input.id=`modelTargetHotkey_${classId}`;input.addEventListener('input',()=>input.dataset.dirty='1');const tools=document.createElement('div');tools.className='hotkey-tools';const learnBtn=document.createElement('button');learnBtn.type='button';learnBtn.className='secondary';learnBtn.textContent='\u611f\u5e94';const hintId=`modelTargetHotkeyHint_${classId}`;learnBtn.onclick=()=>startAimKeyLearn(input,hintId);const clearBtn=document.createElement('button');clearBtn.type='button';clearBtn.className='ghost';clearBtn.textContent='\u6e05\u7a7a';clearBtn.onclick=()=>{input.value='';input.dataset.dirty='1';const hint=document.getElementById(hintId);if(hint)hint.textContent='\u5df2\u6e05\u7a7a\u3002'};tools.appendChild(learnBtn);tools.appendChild(clearBtn);row.appendChild(label);row.appendChild(input);row.appendChild(tools);root.appendChild(row);const hint=document.createElement('div');hint.id=hintId;hint.className='mini';hint.style.marginTop='-2px';hint.style.marginBottom='4px';hint.textContent='\u7559\u7a7a\u8868\u793a\u4e0d\u7ed9\u8fd9\u4e2a\u7c7b\u522b\u5206\u914d\u5feb\u6377\u952e\u3002';root.appendChild(hint)}}
+function buildForm(){const formRoot=document.getElementById('configForm');const tabRoot=document.getElementById('groupTabs');formRoot.innerHTML='';tabRoot.innerHTML='';const grouped={};for(const field of schema){if(field.hidden)continue;(grouped[field.group]??=[]).push(field)}const groups=Object.keys(grouped);if(!currentGroup&&groups.length)currentGroup=groups[0];for(const group of groups){const btn=document.createElement('button');btn.type='button';btn.className='ghost';btn.textContent=group;btn.dataset.groupTab=group;btn.onclick=()=>switchGroupTab(group);tabRoot.appendChild(btn);const section=document.createElement('div');section.className='config-section';section.dataset.group=group;for(const field of grouped[group]){const row=document.createElement('div');row.className='field';row.dataset.fieldName=field.name;if(field.name==='aim_classes_text')row.classList.add('field-wide');row.dataset.tier=ADVANCED_FIELDS.has(field.name)?'advanced':'core';const left=document.createElement('div');const title=document.createElement('div');title.className='field-title';title.textContent=field.label;const code=document.createElement('div');code.className='mini';code.textContent=`\u53c2\u6570\u4ee3\u53f7: ${field.name}${ADVANCED_FIELDS.has(field.name)?' | 高级':''}`;const desc=document.createElement('div');desc.className='field-desc';desc.textContent=field.desc||'';left.appendChild(title);left.appendChild(code);left.appendChild(desc);const right=document.createElement('div');right.className='field-input';let input=document.createElement('input');if(field.type==='bool'){input.type='checkbox'}else if(field.type==='str'){input.type='text';input.placeholder='\u8bf7\u8f93\u5165\u5185\u5bb9'}else{input.type='number';if(field.step!==undefined)input.step=String(field.step);if(field.min!==undefined)input.min=String(field.min);if(field.max!==undefined)input.max=String(field.max)}input.id=field.name;input.dataset.type=field.type;input.addEventListener('input',()=>{input.dataset.dirty='1'});if(field.name==='aim_keys_text'||field.name==='aim_classes_text'){right.style.flexDirection='column';right.style.alignItems='stretch';right.style.gap='6px'}if(field.name==='aim_keys_text'){input.placeholder='KEY_LEFTSHIFT,KEY_RIGHTSHIFT';const tools=document.createElement('div');tools.className='row';const captureBtn=document.createElement('button');captureBtn.type='button';captureBtn.className='secondary';captureBtn.textContent='\u5f00\u59cb\u611f\u5e94';captureBtn.onclick=()=>startAimKeyLearn(input,'aimKeyCaptureHint');const clearBtn=document.createElement('button');clearBtn.type='button';clearBtn.className='ghost';clearBtn.textContent='\u6e05\u7a7a';clearBtn.onclick=()=>{input.value='';input.dataset.dirty='1';stopAimKeyLearn('\u5df2\u6e05\u7a7A\u3002\u70b9\u51fb\u201c\u5f00\u59cb\u611f\u5e94\u201d\u540e\u53ef\u4ee5\u91CD\u65B0\u68C0\u6D4B\u3002')};tools.appendChild(captureBtn);tools.appendChild(clearBtn);right.appendChild(input);right.appendChild(tools);const hint=document.createElement('div');hint.id='aimKeyCaptureHint';hint.className='mini';hint.textContent='\u70b9\u51fb\u201c\u5f00\u59cb\u611f\u5e94\u201d\u540e\uff0c\u53bb\u6309\u63d2\u5728 OrangePi \u4e0a\u7684\u952e\u76d8\u6309\u952e\uff0c\u7f51\u9875\u4f1a\u81ea\u52A8\u56DE\u586B\u771F\u5B9E KEY_ \u540D\u79F0\u3002';right.appendChild(hint)}else{right.appendChild(input)}row.appendChild(left);row.appendChild(right);section.appendChild(row)}formRoot.appendChild(section)}switchGroupTab(currentGroup);refreshAimPriorityEditor();updateAdvancedVisibility()}
+function updateForm(cfg){currentConfig=cfg||{};for(const f of schema){const i=document.getElementById(f.name);if(!i||i.dataset.dirty==='1')continue;const v=currentConfig[f.name];if(f.type==='bool')i.checked=Boolean(v);else i.value=v??''}refreshAimPriorityEditor();updateAdvancedVisibility()}
+function gatherConfig(){const out={};for(const f of schema){const i=document.getElementById(f.name);if(!i)continue;out[f.name]=f.type==='bool'?i.checked:(f.type==='str'?String(i.value||'').trim():(f.type==='int'?parseInt(i.value||'0',10):parseFloat(i.value||'0')))}return out}
+async function refreshState(){const data=await getj('/api/state');const s=data.ai_state?.status||{};const aim=s.aim||{};const pt=data.passthrough||{};const services=data.services||{};const preview=s.preview||{};const selectedModel=findModel(modelData.selected_model_id)||findModel(currentModelId);const captureBackend=s.capture_backend||s.backend||s.capture_source_backend||'';const currentModelName=selectedModel?.label||selectedModel?.filename||(typeof s.model==='string'&&s.model?s.model.split(/[\/]/).pop():'');const targetState=aim.error?'\u5F02\u5E38':(aim.target_found?'\u5DF2\u53D1\u73B0':'\u672A\u53D1\u73B0');const selectedTargetClass=(Number.isFinite(Number(aim.selected_target_class))&&Number(aim.selected_target_class)>=0)?aim.selected_target_class:(aim.active_target_class??s.aim_class);const targetPriority=formatTargetPriorityText(aim.active_target_classes||s.aim_target_classes||s.aim_classes_text||'');const targetOffsetText=`(${num(aim.target_offset_x,1)}, ${num(aim.target_offset_y,1)})`;const controlOffsetText=`(${num(aim.control_offset_x,1)}, ${num(aim.control_offset_y,1)})`;const moveText=`(${safe(aim.move_x,0)}, ${safe(aim.move_y,0)})`;updateForm(data.config||{});renderEdidIdentity(services.edid?.identity||{},services.edid?.active_profile||'');renderEdidProfiles(services.edid?.profiles||[]);document.getElementById('meta').textContent=`\u4E3B\u673A=${location.host} \u66F4\u65B0\u65F6\u95F4=${new Date().toLocaleTimeString()} \u9884\u89C8=${data.preview_exists?'\u5DF2\u751F\u6210':'\u672A\u751F\u6210'}`;document.getElementById('stats').innerHTML=[stat('AI \u8FDB\u7A0B',data.ai_running?'\u8FD0\u884C\u4E2D':'\u5DF2\u505C\u6B62',data.ai_running?'ok':'bad'),stat('\u63A8\u7406 FPS',num(s.infer_fps,2)),stat('\u603B\u5EF6\u8FDF ms',num(s.total_latency_ms,1)),stat('\u76EE\u6807\u72B6\u6001',targetState,aim.target_found?'ok':(aim.error?'bad':'warnc')),stat('\u89E6\u53D1\u952E',safe(aim.pressed_key||'\u65E0'))].join('');setKv('aiKv',[[ '\u5F53\u524D\u6A21\u578B',currentModelName],[ '\u91C7\u96C6\u540E\u7AEF',captureBackend],[ '\u5F53\u524D\u9009\u4E2D\u76EE\u6807\u7C7B\u522B',safe(selectedTargetClass,0)],[ '\u76EE\u6807\u4F18\u5148\u7EA7',targetPriority],[ '\u68C0\u6D4B\u6570\u91CF',safe(s.detections_count??s.detections,0)],[ '\u8F93\u5165\u56FE\u50CF\u5C3A\u5BF8',JSON.stringify(s.infer_shape||[])],[ '\u539F\u59CB\u504F\u5DEE',targetOffsetText],[ '\u63A7\u5236\u504F\u5DEE',controlOffsetText],[ '\u6700\u7EC8\u79FB\u52A8',moveText],[ '\u7A33\u5B9A\u5E27',`${safe(aim.stable_frames,0)} / ${safe(aim.required_lock_frames,0)}`],[ '\u7784\u51C6\u72B6\u6001',safe(aim.error||targetState)]]);lastPassthroughKeys=readPassthroughKeys(pt);setKv('ptKv',[[ '\u900F\u4F20\u53EF\u7528',pt.ok===false?'\u5426':'\u662F'],[ '\u6309\u4E0B\u6309\u952E',lastPassthroughKeys.length?lastPassthroughKeys.join(', '):'\u65E0'],[ '\u9F20\u6807\u6309\u94AE',Array.isArray(pt.mouse_buttons)&&pt.mouse_buttons.length?pt.mouse_buttons.join(', '):'\u65E0']]);const previewTime=data.preview_mtime?new Date(data.preview_mtime*1000).toLocaleTimeString():'\u65E0';document.getElementById('previewMeta').textContent=`\u9884\u89C8=${data.preview_exists?'\u5DF2\u751F\u6210':'\u672A\u751F\u6210'} | \u66F4\u65B0\u65F6\u95F4=${previewTime} | \u5199\u5165=${preview.ok?'\u6B63\u5E38':'\u5931\u8D25'}${preview.error?` | \u539F\u56E0=${preview.error}`:''}`;document.getElementById('serviceStatus').textContent=`AI=${services.ai?.running?'\u8FD0\u884C\u4E2D':'\u5DF2\u505C\u6B62'} PID=${safe(services.ai?.pid,'\u65E0')} | \u900F\u4F20=${services.passthrough?.socket_ok?'\u6B63\u5E38':'\u4E0D\u53EF\u7528'} | sudo=${services.passthrough?.sudo_available?'\u53EF\u76F4\u63A5\u6267\u884C':'\u9700\u8981\u6743\u9650'}`;if(!data.preview_exists){setPreviewMessage(`\u5F53\u524D\u8FD8\u6CA1\u6709\u9884\u89C8\u56FE\u3002AI \u4FA7\u56DE\u62A5: ${safe(preview.error||'\u672A\u63D0\u4F9B\u539F\u56E0')}`)}pushHist('fps',s.infer_fps);pushHist('latency',s.total_latency_ms);pushHist('infer',s.infer_ms);pushHist('move',Math.hypot(Number(aim.move_x||0),Number(aim.move_y||0)));drawAllTrends()}
+async function refreshLogs(){const [a,p]=await Promise.all([getj('/api/logs?name=ai&lines=80'),getj('/api/logs?name=passthrough&lines=80')]);document.getElementById('aiLog').textContent=a.text||'';document.getElementById('ptLog').textContent=p.text||''}
+async function refreshPresets(){const data=await getj('/api/presets');const root=document.getElementById('presetList');root.innerHTML='';for(const p of data.presets||[]){const el=document.createElement('div');el.className='preset';el.innerHTML=`<div style="display:flex;justify-content:space-between;gap:8px"><strong>${p.label||p.name}</strong><span class="mini">${p.source==='builtin'?'\u5185\u7f6e':'\u81ea\u5b9a\u4e49'}</span></div><div class="mini" style="margin:6px 0 8px">${p.description||''}</div><div class="row"><button data-apply="${p.name}">\u5e94\u7528</button>${p.source==='custom'?`<button class="danger" data-delete="${p.name}">\u5220\u9664</button>`:''}</div>`;root.appendChild(el)}root.querySelectorAll('[data-apply]').forEach(b=>b.addEventListener('click',async()=>{await postj('/api/presets/apply',{name:b.dataset.apply});clearConfigDirty();await refreshAll()}));root.querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',async()=>{await postj('/api/presets/delete',{name:b.dataset.delete});await refreshPresets()}))}
+function fmtBytes(v){const n=Number(v||0);if(!Number.isFinite(n)||n<=0)return '0 B';const units=['B','KB','MB','GB'];let value=n,idx=0;while(value>=1024&&idx<units.length-1){value/=1024;idx+=1}return `${value.toFixed(value>=100||idx===0?0:1)} ${units[idx]}`}
+function findModel(id){return (modelData.models||[]).find(m=>m.id===id)||null}
+function computeModelRenderSignature(data,editorId){const models=(data?.models||[]).map(model=>({id:model.id,label:model.label,filename:model.filename,path:model.path,size:model.size,sha256:model.sha256,valid:model.valid,validation_message:model.validation_message,runtime_valid:model.runtime_valid,runtime_message:model.runtime_message,input_width:model.input_width,input_height:model.input_height,input_source:model.input_source,runtime_output_shapes:model.runtime_output_shapes,class_count:model.class_count,class_count_source:model.class_count_source,selected:model.selected,uploaded:model.uploaded,deletable:model.deletable,aim_class:model.aim_class,aim_keys_text:model.aim_keys_text,class_names_text:model.class_names_text,notes:model.notes,target_hotkeys:model.target_hotkeys,target_hotkey_count:model.target_hotkey_count}));return JSON.stringify({selected_model_id:data?.selected_model_id||'',editor_id:editorId||'',models})}
+function fillModelMeta(model){if(!model){setKv('modelMetaKv',[['\u72b6\u6001','\u5f53\u524d\u6ca1\u6709\u9009\u4e2d\u6a21\u578b']]);return}setKv('modelMetaKv',[['\u6a21\u578b ID',model.id],['\u663e\u793a\u540d\u79f0',model.label],['\u6587\u4ef6\u540d',model.filename],['\u6587\u4ef6\u5927\u5c0f',fmtBytes(model.size)],['SHA256',String(model.sha256||'').slice(0,16)],['\u63a8\u7406\u8f93\u5165\u5c3a\u5bf8',model.input_width&&model.input_height?`${model.input_width} x ${model.input_height}`:'\u672a\u77e5'],['\u8f93\u5165\u5c3a\u5bf8\u6765\u6e90',model.input_source==='runtime'?'RKNN \u8fd0\u884c\u65f6':(model.input_source==='runtime-output-shape'?'RKNN \u8f93\u51fa\u53cd\u63a8':'\u6587\u4ef6\u540d\u731c\u6d4b')],['\u57fa\u7840\u6821\u9a8c',model.validation_message||'\u672a\u77e5'],['\u8fd0\u884c\u65f6\u6821\u9a8c',model.runtime_valid===null?'\u672a\u6267\u884c':(model.runtime_valid?'\u901a\u8fc7':'\u5931\u8d25')],['\u8fd0\u884c\u65f6\u4fe1\u606f',model.runtime_message||'\u65e0'],['RKNN \u8f93\u51fa\u5f62\u72b6',JSON.stringify(model.runtime_output_shapes||[])],['\u7c7b\u522b\u6570\u91cf',safe(model.class_count,0)],['\u7c7b\u522b\u6570\u91cf\u6765\u6e90',model.class_count_source==='runtime'?'RKNN \u8f93\u51fa\u53cd\u63a8':'\u624b\u5de5\u7c7b\u522b\u540d\u79f0'],['\u9ED8\u8BA4\u7784\u51C6\u7C7B\u522B',safe(model.aim_class,0)],['\u9ED8\u8BA4\u89E6\u53D1\u6309\u952E',safe(model.aim_keys_text||'\u65E0')],['\u5f53\u524d\u9009\u4e2d',model.selected?'\u662f':'\u5426'],['\u5FEB\u6377\u952E\u6570\u91CF',safe(model.target_hotkey_count,0)],['\u6700\u540e\u4fdd\u5b58',model.updated_at?new Date(model.updated_at*1000).toLocaleString():'\u672a\u77e5'],['\u6765\u6e90',model.uploaded?'\u7f51\u9875\u4e0a\u4f20':'\u5df2\u5165\u5e93']])}
+function loadModelEditor(model,force=false){if(!force&&model&&model.id===currentModelId&&isModelEditorDirty())return;currentModelId=model?.id||'';fillModelMeta(model);document.getElementById('modelEditLabel').value=model?.label||'';document.getElementById('modelEditAimClass').value=String(Number.parseInt(String(model?.aim_class??0),10)||0);document.getElementById('modelEditAimKeys').value=normalizeAimKeysText(model?.aim_keys_text||'');document.getElementById('modelEditClasses').value=model?.class_names_text||'';document.getElementById('modelEditNotes').value=model?.notes||'';const aimKeysHint=document.getElementById('modelEditAimKeysHint');if(aimKeysHint)aimKeysHint.textContent='\u8FD9\u4E2A\u6A21\u578B\u88AB\u9009\u4E2D\u65F6\uFF0C\u4F1A\u628A\u8FD9\u91CC\u7684\u7C7B\u522B\u548C\u89E6\u53D1\u952E\u540C\u6B65\u5230\u8FD0\u884C\u914D\u7F6E\u3002';buildTargetHotkeyEditor(model);clearModelEditorDirty();document.getElementById('modelActionResult').textContent=model?`\u5f53\u524d\u7f16\u8f91\u6a21\u578b\uff1a${model.label||model.id}`:'\u8bf7\u5148\u4ece\u5de6\u4fa7\u9009\u62e9\u4e00\u4e2a\u6a21\u578b';const delBtn=document.getElementById('modelDeleteBtn');if(delBtn)delBtn.disabled=!model||!model.deletable;refreshAimPriorityEditor()}
+function renderModelList(forceEditorReload=false){const root=document.getElementById('modelList');root.innerHTML='';const items=modelData.models||[];if(!items.length){root.innerHTML='<div class="mini">\u8fd8\u6ca1\u6709\u5df2\u5165\u5e93\u6a21\u578b\u3002\u8bf7\u5148\u4e0a\u4f20 `.rknn` \u6587\u4ef6\u3002</div>';loadModelEditor(null,true);lastModelRenderSignature=computeModelRenderSignature(modelData,'');return}if(!findModel(currentModelId)){currentModelId=modelData.selected_model_id||items[0].id}for(const model of items){const el=document.createElement('div');el.className=`model-item${model.id===currentModelId?' active':''}`;const valid=model.valid?'\u901a\u8fc7':'\u5931\u8d25';el.innerHTML=`<div class="title">${model.label||model.id}</div><div class="sub">${model.filename||''}</div><div class="sub">\u6821\u9a8c: ${valid} | \u7c7b\u522b: ${safe(model.class_count,0)} | \u9ed8\u8ba4\u7784\u51c6\u7c7b\u522b: ${safe(model.aim_class,0)}</div><div class="badges">${model.selected?'<span class="badge current">\u5f53\u524d\u4f7f\u7528\u4e2d</span>':''}${model.uploaded?'<span class="badge uploaded">\u7f51\u9875\u4e0a\u4f20</span>':'<span class="badge discovered">\u5df2\u5165\u5e93</span>'}${model.deletable?'<span class="badge deletable">\u53ef\u5220\u9664</span>':'<span class="badge readonly">\u4ec5\u67e5\u770b</span>'}</div>`;el.onclick=()=>{currentModelId=model.id;renderModelList(true);loadModelEditor(model,true)};root.appendChild(el)}loadModelEditor(findModel(currentModelId),forceEditorReload);lastModelRenderSignature=computeModelRenderSignature(modelData,currentModelId)}
+async function refreshModels(forceEditorReload=false){const data=await getj('/api/models');modelData={selected_model_id:data.selected_model_id||'',models:data.models||[]};if(!currentModelId)currentModelId=modelData.selected_model_id||(modelData.models[0]?.id||'');if(!findModel(currentModelId)&&modelData.models.length)currentModelId=modelData.selected_model_id||(modelData.models[0]?.id||'');const signature=computeModelRenderSignature(modelData,currentModelId);if(!forceEditorReload&&signature===lastModelRenderSignature){refreshAimPriorityEditor();return}renderModelList(forceEditorReload)}
+async function postForm(u,form){const r=await fetch(u,{method:'POST',body:form});const d=await r.json();if(!r.ok||d.ok===false)throw new Error(d.error||u);return d}
+async function uploadModel(){const fileInput=document.getElementById('modelUploadFile');const file=(fileInput.files||[])[0];if(!file){alert('\u8bf7\u5148\u9009\u62e9\u4e00\u4e2a .rknn \u6a21\u578b\u6587\u4ef6');return}const form=new FormData();form.append('file',file);form.append('label',document.getElementById('modelUploadLabel').value.trim());form.append('select_after_upload','0');const data=await postForm('/api/models/upload',form);document.getElementById('modelUploadResult').textContent=`\u4e0a\u4f20\u6210\u529f\uff0c\u5df2\u5165\u5e93\u4f46\u672a\u5207\u6362\uff1a${data.model?.label||data.model?.id||file.name}`;document.getElementById('modelUploadFile').value='';await refreshModels();await refreshState()}
+async function saveModelEditor(){if(!currentModelId){alert('\u8bf7\u5148\u9009\u62e9\u8981\u7f16\u8f91\u7684\u6a21\u578b');return}const payload={id:currentModelId,values:{label:document.getElementById('modelEditLabel').value.trim(),aim_class:Math.max(0,Number.parseInt(String(document.getElementById('modelEditAimClass').value||'0'),10)||0),aim_keys_text:normalizeAimKeysText(document.getElementById('modelEditAimKeys').value||''),target_hotkeys:gatherTargetHotkeysFromEditor(),class_names_text:document.getElementById('modelEditClasses').value,notes:document.getElementById('modelEditNotes').value}};const data=await postj('/api/models/save',payload);clearModelEditorDirty();document.getElementById('modelActionResult').textContent=`\u6a21\u578b\u8d44\u6599\u5df2\u4fdd\u5b58\uff1a${data.model?.label||currentModelId} | ${new Date().toLocaleTimeString()}`;await refreshModels(true);await refreshState()}
+async function selectCurrentModel(){if(!currentModelId){alert('\u8bf7\u5148\u9009\u62e9\u8981\u5207\u6362\u7684\u6a21\u578b');return}const data=await postj('/api/models/select',{id:currentModelId,restart_ai:true});clearModelEditorDirty();document.getElementById('modelActionResult').textContent=`\u5df2\u5207\u6362\u6a21\u578b\uff1a${data.model?.label||currentModelId}`;await refreshModels(true);await refreshState()}
+async function deleteCurrentModel(){if(!currentModelId){alert('\u8bf7\u5148\u9009\u62e9\u8981\u5220\u9664\u7684\u6a21\u578b');return}const model=findModel(currentModelId);if(!model?.deletable){alert('\u53ea\u6709 models \u76ee\u5f55\u5185\u7684\u6a21\u578b\u624d\u80fd\u5728\u7f51\u9875\u91cc\u5220\u9664');return}if(!confirm(`\u786e\u5b9a\u5220\u9664\u6a21\u578b ${model?.label||currentModelId} \u5417\uff1f`))return;await postj('/api/models/delete',{id:currentModelId});clearModelEditorDirty();document.getElementById('modelActionResult').textContent='\u6a21\u578b\u5df2\u5220\u9664';currentModelId='';await refreshModels(true);await refreshState()}
+function refreshPreview(){previewTick+=1;previewImage.src=`/api/preview.jpg?t=${Date.now()}_${previewTick}`}
+previewImage.onload=()=>showPreview();previewImage.onerror=()=>setPreviewMessage('\u9884\u89c8\u56fe\u6682\u65f6\u4e0d\u53ef\u7528\u3002\u8bf7\u786e\u8ba4 AI \u6b63\u5728\u8fd0\u884c\uff0c\u5e76\u4e14\u9884\u89c8\u5199\u56fe\u529f\u80fd\u6b63\u5e38\u3002');
+function clearConfigDirty(){document.querySelectorAll('#configForm input').forEach(el=>delete el.dataset.dirty)}
+async function applyConfig(){await postj('/api/config',{values:gatherConfig()});clearConfigDirty();document.getElementById('meta').textContent=`\u4E3B\u673A=${location.host} \u66F4\u65B0\u65F6\u95F4=${new Date().toLocaleTimeString()} \u53C2\u6570\u5DF2\u4FDD\u5B58\uFF0C\u91CD\u542F\u540E\u4ECD\u4F1A\u6CBF\u7528`;await refreshAll()}
+async function resetConfig(){if(!confirm('\u786E\u5B9A\u5C06\u5F53\u524D\u53C2\u6570\u76F4\u63A5\u6062\u590D\u4E3A\u9ED8\u8BA4\u503C\u5417\uFF1F'))return;await postj('/api/config/reset',{});clearConfigDirty();document.getElementById('meta').textContent=`\u4E3B\u673A=${location.host} \u66F4\u65B0\u65F6\u95F4=${new Date().toLocaleTimeString()} \u53C2\u6570\u5DF2\u6062\u590D\u9ED8\u8BA4`;await refreshAll()}
+async function sendControl(payload){const d=await postj('/api/control',payload);document.getElementById('controlResult').textContent=`\u63a7\u5236\u547d\u4ee4\u5df2\u53d1\u9001: ${d.action}`;await refreshState()}
+async function serviceAction(service,action){const d=await postj('/api/service',{service,action});document.getElementById('serviceStatus').textContent=`${service} ${action} \u5df2\u6267\u884c`;if(d.output)document.getElementById('serviceStatus').textContent+=` | ${d.output}`;await refreshAll()}
+async function applyEdidProfile(name){const data=await postj('/api/edid/apply',{name});const lines=String(data.output||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);const modeLine=lines.find(v=>v.startsWith('Modes:'))||'';document.getElementById('edidResult').textContent=`EDID 已切换到 ${data.label||data.mode||name}${modeLine?`：${modeLine}`:''}`;document.getElementById('serviceStatus').textContent=`HDMI RX EDID 已切换到 ${data.label||data.mode||name}，请让主机重新识别显示器`;await refreshState()}
+async function randomizeEdidIdentity(){const data=await postj('/api/edid/identity/random',{apply_current:true});const identity=data.identity||{};const lines=String(data.output||'').split(/\r?\n/).map(v=>v.trim()).filter(Boolean);const modeLine=lines.find(v=>v.startsWith('Modes:'))||'';document.getElementById('edidResult').textContent=`EDID 身份已随机更新并重发：${identity.brand||''} / ${identity.name||''} / ${identity.vendor||''}${modeLine?` | ${modeLine}`:''}`;document.getElementById('serviceStatus').textContent=`EDID 身份已随机更新，当前 profile=${data.profile||'unknown'}；请让主机重新识别显示器`;await refreshState()}
+async function savePreset(){const name=document.getElementById('presetName').value.trim();if(!name){alert('\u8bf7\u8f93\u5165\u9884\u8bbe\u540d\u79f0');return}await postj('/api/presets/save',{name,values:gatherConfig()});document.getElementById('presetName').value='';await refreshPresets()}
+async function toggleShow(){const next=!currentAiShowEnabled;const data=await postj('/api/ai/show',{enabled:next,restart_ai:true});updateShowControls(Boolean(data.show_enabled));document.getElementById('serviceStatus').textContent=`\u9884\u89c8\u7a97\u53e3\u5df2${data.show_enabled?'\u5f00\u542f':'\u5173\u95ed'}\uff0cAI \u5df2\u6309\u65b0\u914d\u7f6e\u91cd\u542f`;await refreshAll()}
+async function refreshAll(){await Promise.allSettled([refreshModels(),refreshState(),refreshLogs(),refreshPresets()]);refreshPreview()}
+async function init(){schema=(await getj('/api/schema')).schema||[];buildForm();drawAllTrends();setPreviewMessage('\u6b63\u5728\u7b49\u5f85\u9884\u89c8\u56fe...');await refreshModels(true);await Promise.allSettled([refreshState(),refreshLogs(),refreshPresets()]);refreshPreview();['modelEditLabel','modelEditAimClass','modelEditAimKeys','modelEditClasses','modelEditNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',()=>el.dataset.dirty='1')});const modelAimKeysInput=document.getElementById('modelEditAimKeys');const modelAimKeysLearnBtn=document.getElementById('modelEditAimKeysLearnBtn');const modelAimKeysClearBtn=document.getElementById('modelEditAimKeysClearBtn');if(modelAimKeysInput&&modelAimKeysLearnBtn)modelAimKeysLearnBtn.onclick=()=>startAimKeyLearn(modelAimKeysInput,'modelEditAimKeysHint');if(modelAimKeysInput&&modelAimKeysClearBtn)modelAimKeysClearBtn.onclick=()=>{modelAimKeysInput.value='';modelAimKeysInput.dataset.dirty='1';const hint=document.getElementById('modelEditAimKeysHint');if(hint)hint.textContent='\u5DF2\u6E05\u7A7A\u3002'};document.querySelectorAll('[data-main-tab]').forEach(b=>b.onclick=()=>switchMainTab(b.dataset.mainTab));document.getElementById('applyBtn').onclick=()=>applyConfig().catch(e=>alert(String(e)));document.getElementById('resetConfigBtn').onclick=()=>resetConfig().catch(e=>alert(String(e)));document.getElementById('toggleAdvancedBtn').onclick=()=>{showAdvanced=!showAdvanced;updateAdvancedVisibility()};document.getElementById('savePresetBtn').onclick=()=>savePreset().catch(e=>alert(String(e)));const edidRandomBtn=document.getElementById('edidRandomIdentityBtn');if(edidRandomBtn)edidRandomBtn.onclick=()=>randomizeEdidIdentity().catch(e=>alert(String(e)));const toggleShowBtn=document.getElementById('toggleShowBtn');if(toggleShowBtn)toggleShowBtn.onclick=()=>toggleShow().catch(e=>alert(String(e)));document.getElementById('moveBtn').onclick=()=>sendControl({action:'mouse_move',dx:parseInt(document.getElementById('moveDx').value||'0',10),dy:parseInt(document.getElementById('moveDy').value||'0',10)}).catch(e=>alert(String(e)));document.getElementById('scrollBtn').onclick=()=>sendControl({action:'mouse_scroll',wheel:parseInt(document.getElementById('scrollWheel').value||'0',10)}).catch(e=>alert(String(e)));document.getElementById('modelUploadBtn').onclick=()=>uploadModel().catch(e=>alert(String(e)));document.getElementById('modelSaveBtn').onclick=()=>saveModelEditor().catch(e=>alert(String(e)));document.getElementById('modelSelectBtn').onclick=()=>selectCurrentModel().catch(e=>alert(String(e)));document.getElementById('modelDeleteBtn').onclick=()=>deleteCurrentModel().catch(e=>alert(String(e)));document.querySelectorAll('[data-key]').forEach(b=>b.onclick=()=>sendControl({action:b.dataset.key,key:document.getElementById('controlKey').value.trim()}).catch(e=>alert(String(e))));document.querySelectorAll('[data-mouse]').forEach(b=>b.onclick=()=>{const [action,button]=b.dataset.mouse.split(':');sendControl({action,button}).catch(e=>alert(String(e)))});document.querySelectorAll('[data-arrow]').forEach(b=>b.onclick=()=>{const sx=Math.abs(parseInt(document.getElementById('moveDx').value||'0',10)),sy=Math.abs(parseInt(document.getElementById('moveDy').value||'0',10));let dx=0,dy=0;if(b.dataset.arrow==='up')dy=-sy;if(b.dataset.arrow==='down')dy=sy;if(b.dataset.arrow==='left')dx=-sx;if(b.dataset.arrow==='right')dx=sx;sendControl({action:'mouse_move',dx,dy}).catch(e=>alert(String(e)))});document.querySelectorAll('[data-service]').forEach(b=>b.onclick=()=>{const [service,action]=b.dataset.service.split(':');serviceAction(service,action).catch(e=>alert(String(e)))});setInterval(()=>refreshState().catch(()=>{}),1000);setInterval(()=>refreshLogs().catch(()=>{}),2500);setInterval(()=>refreshPresets().catch(()=>{}),5000);setInterval(()=>refreshModels().catch(()=>{}),4000);setInterval(refreshPreview,400)}
+init().catch(err=>document.getElementById('meta').textContent=`\u521d\u59cb\u5316\u5931\u8d25: ${err}`)
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+自带键鼠传透  采集卡 移动 把键盘鼠标插板子上 再通过type接口接主机即可
+
+系统推荐  Orangepi5plus_1.2.0_ubuntu_focal_desktop/server_xfce_linux6.1.43.7z
+刷好系统后  通过ssh把整个文件复制过去解压 
+然后给所有sh文件权限  chmod +x scripts/*.sh
+然后 运行一键部署脚本  bash scripts/deploy.sh install
+其他详细的看deploy.md  
+再不懂 问ai
